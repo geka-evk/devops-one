@@ -1,0 +1,14 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: argocd-server-cert
+  namespace: argocd
+spec:
+  issuerRef:
+    name: klm-ca-issuer
+    kind: ClusterIssuer
+  secretName: argocd-server-tls
+  dnsNames:
+    - argocd.klm.local
+  ipAddresses:
+    - 172.27.0.2

@@ -1,0 +1,105 @@
+# kubernetes aliases
+alias d-c='docker-compose '
+alias dco='docker compose '
+alias k='kubectl '
+alias kx='kubectx '
+alias kn='kubens '
+
+alias ke='kubectl exec -it '
+alias kg='kubectl get '
+
+alias kgp='kubectl get po '
+alias kgpg='kubectl get po | grep '
+alias kgpw='kubectl get pods -o wide'
+alias kgpc='kubectl get pods -o jsonpath="{.spec.containers[*].name}" '
+alias kgs='kubectl get svc '
+kgpe() {
+  kubectl get event --field-selector involvedObject.name=$1
+}
+
+alias kl='kubectl logs -f '
+alias kld='kubectl logs -f deployment/'
+alias kla='kubectl logs -f --all-containers=true '
+alias kll='kubectl logs -f -l component='
+alias kt='kubetail ' # sudo apt-get install kubetail
+
+alias kdel='kubectl delete po '
+alias ks='kubectl scale deploy --replicas '
+
+alias kdd='kubectl describe deploy '
+alias kdp='kubectl describe pod '
+alias ked='KUBE_EDITOR="nano" kubectl edit deploy '
+alias kecm='KUBE_EDITOR="nano" kubectl edit cm '
+
+alias kpf='kubectl port-forward '
+alias kpf-a='kubectl -n argocd port-forward service/argocd-server 9443:443'
+
+alias wae='kubectl get events --sort-by=".lastTimestamp" --watch'
+alias gae='kubectl get events --sort-by=".lastTimestamp"'
+alias wkgp='watch -n 1 kubectl get po'
+
+wkge()  { kubectl get events --watch --field-selector involvedObject.name=$1; }
+## wkge some-component
+
+wkgej() { kubectl get events --watch --output json --field-selector involvedObject.name=$1; }
+## wkgej some-component
+
+alias ktp='kubectl top po'
+alias ktpc='kubectl top po -A --sort-by=cpu'
+
+krd() {
+  kubectl exec -it $1 -- sh -c "kill -USR1 ${2:-1}"
+  kubectl port-forward $1 ${3:-19229}:9229
+}
+
+kgpass() {
+  input=$1
+  passField="password"
+
+  if [[ "$input" == "argo" ]]; then
+    ns="argocd"
+    secret="argocd-initial-admin-secret"
+  elif [[ "$input" == "keyk" ]]; then
+    ns="keycloak"
+    secret="switch-keycloak-initial-admin"
+  elif [[ "$input" == "cldb" ]]; then
+    ns="mojaloop"
+    secret="central-ledger-db-secret"
+    passField="mysql-password"
+  elif [[ "$input" == "graf" ]]; then
+    ns="monitoring"
+    secret="grafana-admin-secret"
+    passField="admin-pw"
+  else
+    echo "Invalid input value. Please provide either 'argo', 'keyk', 'graf' or 'cldb'."
+    return 1
+  fi
+
+  kubectl -n "$ns" get secret "$secret" -o jsonpath={.data."$passField"} | base64 -d && echo
+}
+
+
+# alias kuconf='sudo rm ~/.kube/config && nano ~/.kube/config'
+kconf() {
+    CONFIG_FILE=~/.kube/config
+    CLUSTER_CONFIGS_DIR=~/.kube/clusters
+
+    if [ $# -eq 0 ]; then
+        # No arguments provided, delete and edit the config file
+        sudo rm -f $CONFIG_FILE
+        nano $CONFIG_FILE
+    elif [ $# -eq 1 ]; then
+        # One argument provided, update the config file with the content of the argument
+        NEW_CONFIG=$CLUSTER_CONFIGS_DIR/$1
+        if [ -f "$NEW_CONFIG" ]; then
+            sudo cp "$NEW_CONFIG" $CONFIG_FILE
+            echo "Updated $CONFIG_FILE with the content of $NEW_CONFIG."
+        else
+            echo "Error: File $NEW_CONFIG not found."
+            return 1
+        fi
+    else
+        echo "Usage: kconf [new-config-file]"
+        return 1
+    fi
+}

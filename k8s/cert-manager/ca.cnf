@@ -1,0 +1,24 @@
+# OpenSSL configuration file for a self-signed CA certificate
+
+[ req ]
+default_bits        = 2048                # Key size
+default_md          = sha256              # Message digest to use
+default_keyfile     = ca-key.pem          # Default private key file name
+distinguished_name  = req_distinguished_name
+x509_extensions     = v3_ca               # Extensions for the CA certificate
+prompt              = no                  # Disable prompting for DN fields
+
+[ req_distinguished_name ]
+C                   = PT                  # Country Name (2 letter code)
+ST                  = Aveiro              # State or Province Name
+L                   = S.M. da Feira       # Locality Name
+O                   = KLM                 # Organization Name
+OU                  = home                # Organizational Unit Name
+CN                  = KLM Root CA         # Common Name
+emailAddress        = klm@klm.local       # Email Address
+
+[ v3_ca ]
+subjectKeyIdentifier    = hash
+authorityKeyIdentifier  = keyid:always,issuer
+basicConstraints        = CA:TRUE             # Indicates this is a CA certificate
+keyUsage                = critical,keyCertSign,cRLSign
